@@ -2,6 +2,8 @@ package com.udaysawhney.moviesdb;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.arch.lifecycle.Observer;
+import android.arch.lifecycle.ViewModelProviders;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
@@ -12,6 +14,7 @@ import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.support.annotation.Nullable;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -24,11 +27,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
+import com.udaysawhney.moviesdb.ViewModel.MainViewModel;
 import com.udaysawhney.moviesdb.adapter.MoviesAdapter;
 import com.udaysawhney.moviesdb.adapter.TestAdapter;
 import com.udaysawhney.moviesdb.api.Client;
 import com.udaysawhney.moviesdb.api.Service;
 import com.udaysawhney.moviesdb.data.FavoriteDbHelper;
+import com.udaysawhney.moviesdb.database.FavoriteEntry;
 import com.udaysawhney.moviesdb.model.Movie;
 import com.udaysawhney.moviesdb.model.MoviesResponse;
 
@@ -333,18 +338,24 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
     }
 
     private void getAllFavorite(){
-        new AsyncTask<Void, Void, Void>(){
+        MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
+        viewModel.getFavorite().observe(this, new Observer<List<FavoriteEntry>>() {
             @Override
-            protected Void doInBackground(Void... params){
-                movieList.clear();
-                movieList.addAll(favoriteDbHelper.getAllFavorite());
-                return null;
+            public void onChanged(@Nullable List<FavoriteEntry> imageEntries) {
+                List<Movie> movies = new ArrayList<>();
+                for (FavoriteEntry entry : imageEntries){
+                    Movie movie = new Movie();
+                    movie.setId(entry.getMovieid());
+                    movie.setOverview(entry.getOverview());
+                    movie.setOriginalTitle(entry.getTitle());
+                    movie.setPosterPath(entry.getPosterpath());
+                    movie.setVoteAverage(entry.getUserrating());
+
+                    movies.add(movie);
+                }
+
+                adapter.setMovies(movies);
             }
-            @Override
-            protected void onPostExecute(Void aVoid){
-                super.onPostExecute(aVoid);
-                adapter.notifyDataSetChanged();
-            }
-        }.execute();
+        });
     }
 }
