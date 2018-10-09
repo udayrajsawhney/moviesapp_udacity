@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity  {
     private MoviesAdapter adapter;
     ProgressDialog pd;
     private AppCompatActivity activity = MainActivity.this;
-    public static final String LOG_TAG = MoviesAdapter.class.getName();
+    public static final String LOG_TAG = MainActivity.class.getName();
 
     private static String LIST_STATE = "list_state";
     private Parcelable savedRecyclerLayoutState;
@@ -78,15 +78,18 @@ public class MainActivity extends AppCompatActivity  {
 
         if (savedInstanceState != null){
             moviesInstance = savedInstanceState.getParcelableArrayList(LIST_STATE);
+            //Log.d("adding movie",Integer.toString(moviesInstance.size()));
             savedRecyclerLayoutState = savedInstanceState.getParcelable(BUNDLE_RECYCLER_LAYOUT);
             displayData();
         }else {
+            //Log.d("empty saved Instance","no movies");
             initViews();
         }
     }
 
     private void displayData(){
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
+        Log.d(LOG_TAG,"Number of saved movies " + Integer.toString(moviesInstance.size()));
         adapter = new MoviesAdapter(this, moviesInstance);
         if (getActivity().getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT){
             recyclerView.setLayoutManager(new GridLayoutManager(this, 2));
@@ -152,9 +155,9 @@ public class MainActivity extends AppCompatActivity  {
 
     private void loadJSON(){
         String sortOrder = checkSortOrder();
-
+        Log.d(LOG_TAG,sortOrder);
         if (sortOrder.equals(this.getString(R.string.pref_most_popular))) {
-
+            Log.d(LOG_TAG,"loading most popular movies");
             try {
                 if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please obtain API Key firstly from themoviedb.org", Toast.LENGTH_SHORT).show();
@@ -169,11 +172,12 @@ public class MainActivity extends AppCompatActivity  {
                 call.enqueue(new Callback<MovieResponse>() {
                     @Override
                     public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
-                        if (response.isSuccessful()) {Toast.makeText(MainActivity.this, "the value is " + moviesInstance.size(), Toast.LENGTH_SHORT).show();
+                        if (response.isSuccessful()) {
+                            Toast.makeText(MainActivity.this, "the value is " + moviesInstance.size(), Toast.LENGTH_SHORT).show();
 
                             if (response.body() != null) {
                                 List<Movie> movies = response.body().getResults();
-                                moviesInstance.clear();
+                                //moviesInstance.clear();
                                 moviesInstance.addAll(movies);
                                 recyclerView.setAdapter(new MoviesAdapter(getApplicationContext(), movies));
                                 recyclerView.smoothScrollToPosition(0);
@@ -192,10 +196,7 @@ public class MainActivity extends AppCompatActivity  {
                 Log.d("Error", e.getMessage());
                 Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
             }
-        }else if (sortOrder.equals(this.getString(R.string.favorite))){
-            initViews2();
-        }else {
-
+        } else if (sortOrder.equals(this.getString(R.string.pref_highest_rated))){
             try {
                 if (BuildConfig.THE_MOVIE_DB_API_TOKEN.isEmpty()) {
                     Toast.makeText(getApplicationContext(), "Please obtain API Key firstly from themoviedb.org", Toast.LENGTH_SHORT).show();
@@ -211,7 +212,7 @@ public class MainActivity extends AppCompatActivity  {
                     @Override
                     public void onResponse(Call<MovieResponse> call, Response<MovieResponse> response) {
                         List<Movie> movies = response.body().getResults();
-                        moviesInstance.clear();
+                        //moviesInstance.clear();
                         moviesInstance.addAll(movies);
                         recyclerView.setAdapter(new MoviesAdapter(getApplicationContext(), movies));
                         recyclerView.smoothScrollToPosition(0);
@@ -228,6 +229,9 @@ public class MainActivity extends AppCompatActivity  {
                 Log.d("Error", e.getMessage());
                 Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show();
             }
+        } else {
+            Log.d(LOG_TAG,"going to database");
+            initViews2();
         }
     }
 
@@ -267,9 +271,7 @@ public class MainActivity extends AppCompatActivity  {
     }
 
     private void getAllFavorite(){
-
-        if(moviesInstance != null) {
-
+        Log.d(LOG_TAG,"Number of saved movies " + Integer.toString(moviesInstance.size()));
             adapter = new MoviesAdapter(this, moviesInstance);
 
             MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
@@ -286,12 +288,15 @@ public class MainActivity extends AppCompatActivity  {
                         movie.setVoteAverage(entry.getUserrating());
 
                         movies.add(movie);
+                        Log.d(LOG_TAG,"movie in database" + entry.getTitle());
                     }
 
                     adapter.setMovies(movies);
+                    moviesInstance.addAll(movies);
+                    recyclerView.setAdapter(adapter);
+                    recyclerView.smoothScrollToPosition(0);
                 }
             });
-        }
     }
 }
 

@@ -21,6 +21,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.github.ivbaranov.mfb.MaterialFavoriteButton;
 import com.takusemba.multisnaprecyclerview.MultiSnapRecyclerView;
 import com.udaysawhney.moviesstage2.BuildConfig;
+import com.udaysawhney.moviesstage2.MainActivity;
 import com.udaysawhney.moviesstage2.Model.Movie;
 import com.udaysawhney.moviesstage2.Model.Review;
 import com.udaysawhney.moviesstage2.Model.ReviewResult;
@@ -54,6 +55,8 @@ public class DetailActivity extends AppCompatActivity {
     Movie movie;
     String thumbnail, movieName, synopsis, rating, dateOfRelease;
     int movie_id;
+
+    public static final String LOG_TAG = MainActivity.class.getName();
 
     @Override
     public void onCreate(Bundle savedInstanceState){
@@ -212,6 +215,7 @@ public class DetailActivity extends AppCompatActivity {
                 mDb.favoriteDao().insertFavorite(favoriteEntry);
             }
         });
+        Log.d(LOG_TAG,"saving movie" + movieName);
     }
 
     private void deleteFavorite(final int movie_id){
